@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    socket.on('receiveMessage', (data) => {
+      const messageList = document.getElementById('messages');
+      const messageItem = document.createElement('li');
+      messageItem.textContent = `${data.sender}: ${data.message}`;
+      messageList.appendChild(messageItem);
+    });
+
+    function sendMessage() {
+      const messageInput = document.getElementById('message');
+      const receiverId = document.getElementById('receiverId').value;
+      const message = messageInput.value;
+      if (receiverId && message) {
+        socket.emit('sendMessage', { sender: '{{user.username}}', message });
+        fetch('/chat/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ receiverId, message })
+        }).then(response => {
+          if (!response.ok) {
+            alert('Failed to send message');
+          }
+        }).catch(error => {
+          console.error('Error:', error);
+        });
+        messageInput.value = '';
+      } else {
+        alert('Please select a user and enter a message.');
+      }
+    }
+
+    function selectUser(userId, username) {
+      document.getElementById('receiverId').value = userId;
+      document.getElementById('chatWith').textContent = `Chat with: ${username}`;
+    }
+  </script>
+</head>
+<body>
+  <h1>Welcome, {{user.username}}</h1>
+  <a href="/auth/logout">Logout</a>
+  <h2>Users</h2>
+  <ul>
+    {{#each users}}
+      <li><a href="#" onclick="selectUser('{{this.id}}', '{{this.username}}')">{{this.username}}</a></li>
+    {{/each}}
+  </ul>
+  <h2 id="chatWith">Chat</h2>
+  <ul id="messages">
+    {{#each messages}}
+      <li>{{this.sender_id}}: {{this.message}}</li>
+    {{/each}}
+  </ul>
+  <input type="hidden" id="receiverId">
+  <input type="text" id="message" placeholder="Type a message">
+  <button onclick="sendMessage()">Send</button>
+</body>
+</html>

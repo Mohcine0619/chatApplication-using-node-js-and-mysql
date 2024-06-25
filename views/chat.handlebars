@@ -40,7 +40,7 @@
           } else {
             messageItem.classList.add('bg-gray-200', 'text-black', 'self-start', 'mr-auto', 'dark:bg-gray-700', 'dark:text-white');
           }
-          messageItem.textContent = `${data.sender}: ${data.message}`;
+          messageItem.textContent = data.message;
           messageList.appendChild(messageItem);
         }
       });
@@ -100,7 +100,7 @@
             } else {
               messageItem.classList.add('bg-gray-200', 'text-black', 'self-start', 'mr-auto', 'dark:bg-gray-700', 'dark:text-white');
             }
-            messageItem.textContent = `${message.sender}: ${message.message}`;
+            messageItem.textContent = message.message;
             messageList.appendChild(messageItem);
           });
         })

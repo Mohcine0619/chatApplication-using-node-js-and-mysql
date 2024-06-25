@@ -11,15 +11,25 @@
       darkMode: 'class',
     };
 
-    const socket = io();
+    const socket = io({
+      query: {
+        socketId: localStorage.getItem('socketId') || ''
+      }
+    });
+
+    socket.on('connect', () => {
+      localStorage.setItem('socketId', socket.id);
+    });
+
     socket.on('receiveMessage', (data) => {
       console.log('Received message:', data); // Debugging line
       const selectedUserId = document.getElementById('receiverId').value;
+      const userId = localStorage.getItem('userId'); // Retrieve the user ID from localStorage
       if (data.senderId === selectedUserId || data.receiverId === selectedUserId) {
         const messageList = document.getElementById('messages');
         const messageItem = document.createElement('li');
         messageItem.classList.add('p-2', 'rounded', 'mb-2', 'max-w-xs', 'break-words');
-        if (data.senderId === '{{user.id}}') {
+        if (data.senderId === userId) {
           messageItem.classList.add('bg-blue-500', 'text-white', 'self-end', 'ml-auto');
         } else {
           messageItem.classList.add('bg-gray-200', 'text-black', 'self-start', 'mr-auto', 'dark:bg-gray-700', 'dark:text-white');
@@ -94,6 +104,9 @@
       if (selectedUser) {
         selectUser(selectedUser.userId, selectedUser.username);
       }
+      const userId = '{{user.id}}';
+      console.log('Logged in user ID:', userId); // Log the logged-in user ID
+      localStorage.setItem('userId', userId); // Store the user ID in localStorage
     }
 
     window.onload = loadSelectedUser;

@@ -44,6 +44,20 @@
           messageList.appendChild(messageItem);
         }
       });
+
+      socket.on('updateOnlineUsers', (onlineUsers) => {
+        console.log('Online users:', onlineUsers);
+        document.querySelectorAll('.user-status').forEach(el => {
+          const userId = el.dataset.userId;
+          if (onlineUsers[userId]) {
+            el.classList.add('bg-green-500');
+            el.classList.remove('bg-gray-500');
+          } else {
+            el.classList.add('bg-gray-500');
+            el.classList.remove('bg-green-500');
+          }
+        });
+      });
     }
 
     function sendMessage() {
@@ -145,7 +159,7 @@
             <li class="flex items-center space-x-2">
               <img src="https://robohash.org/{{this.id}}?set=set2&size=40x40" alt="Profile Picture" class="w-10 h-10 rounded-full">
               <a href="#" onclick="selectUser('{{this.id}}', '{{this.username}}')" class="text-blue-500 dark:text-blue-300 hover:underline">{{this.username}}</a>
-              <span class="w-3 h-3 rounded-full {{#if this.online}}bg-green-500{{else}}bg-gray-500{{/if}}"></span>
+              <span class="w-3 h-3 rounded-full {{#if this.online}}bg-green-500{{else}}bg-gray-500{{/if}} user-status" data-user-id="{{this.id}}"></span>
             </li>
           {{/each}}
         </ul>

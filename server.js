@@ -8,12 +8,14 @@ const authRoutes = require('./routes/authRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const authMiddleware = require('./middleware/authMiddleware');
 const { engine } = require('express-handlebars');
-const RedisStore = require('connect-redis').default; // Updated way to require connect-redis
+const RedisStore = require('connect-redis').default;
 const redis = require('redis');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
+
+let onlineUsers = {}; // Store online users
 
 // Set up Handlebars view engine with the 'eq' helper
 app.engine('handlebars', engine({
@@ -35,7 +37,7 @@ redisClient.on('error', (err) => console.log('Redis Client Error', err));
 redisClient.connect().catch(console.error);
 
 const sessionMiddleware = session({
-  store: new RedisStore({ client: redisClient }), // Updated to use RedisStore class
+  store: new RedisStore({ client: redisClient }),
   secret: 'secret',
   resave: false,
   saveUninitialized: true
@@ -55,40 +57,41 @@ app.use(express.static('public'));
 
 app.get('/chat', (req, res) => {
   res.render('chat', {
-    user: req.session.user, // Ensure req.session.user contains the logged-in user's data
-    users: getAllUsers(), // Function to get all users
-    messages: getMessagesForUser(req.session.user.id) // Function to get messages for the logged-in user
+    user: req.session.user,
+    users: getAllUsers(),
+    messages: getMessagesForUser(req.session.user.id)
   });
 });
 
 io.on('connection', (socket) => {
   console.log('New client connected');
 
-  // Store the socket ID in the session
   socket.on('storeSocketId', (userId) => {
     socket.request.session.socketId = socket.id;
     socket.request.session.save();
+    onlineUsers[userId] = { socketId: socket.id, username: socket.request.session.user.username };
+    io.emit('updateOnlineUsers', onlineUsers);
+    console.log('Connected user ID:', userId); // Log the connected user ID
   });
 
-  // Retrieve the socket ID from the session
-  const socketId = socket.request.session.socketId;
-  if (socketId) {
-    socket.join(socketId);
-  }
+  socket.on('disconnect', () => {
+    const userId = Object.keys(onlineUsers).find(key => onlineUsers[key].socketId === socket.id);
+    if (userId) {
+      delete onlineUsers[userId];
+      io.emit('updateOnlineUsers', onlineUsers);
+      console.log('Online user IDs:', Object.keys(onlineUsers)); // Log online user IDs
+    }
+    console.log('Client disconnected');
+  });
 
   socket.on('sendMessage', (data) => {
-    console.log('Message received:', data); // Debugging line
-    // Broadcast the message to all connected clients
+    console.log('Message received:', data);
     io.emit('receiveMessage', {
       sender: data.sender,
       senderId: data.senderId,
       receiverId: data.receiverId,
       message: data.message
     });
-  });
-
-  socket.on('disconnect', () => {
-    console.log('Client disconnected');
   });
 });
 

@@ -17,6 +17,7 @@ exports.login = (req, res) => {
     if (err) throw err;
     if (results.length > 0 && bcrypt.compareSync(password, results[0].password)) {
       req.session.user = results[0];
+      console.log('User logged in:', req.session.user); // Debugging line
       res.redirect('/chat');
     } else {
       res.redirect('/auth/login');

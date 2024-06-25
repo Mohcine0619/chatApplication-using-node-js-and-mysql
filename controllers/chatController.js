@@ -22,8 +22,6 @@ exports.getMessages = (req, res) => {
 
 exports.sendMessage = (req, res) => {
   const { receiverId, message } = req.body;
-  console.log('Receiver ID:', receiverId);
-  console.log('Message:', message);
   if (!receiverId || !message) {
     return res.status(400).send('Receiver ID and message are required.');
   }

@@ -11,6 +11,13 @@
     socket.on('receiveMessage', (data) => {
       const messageList = document.getElementById('messages');
       const messageItem = document.createElement('li');
+      messageItem.classList.add('p-2', 'rounded', 'mb-2', 'max-w-xs', 'break-words');
+      const userId = '{{user.id}}'; // Assuming user ID is available in the template
+      if (data.senderId === userId) {
+        messageItem.classList.add('bg-blue-500', 'text-white', 'self-end', 'ml-auto');
+      } else {
+        messageItem.classList.add('bg-gray-200', 'text-black', 'self-start', 'mr-auto');
+      }
       messageItem.textContent = `${data.sender}: ${data.message}`;
       messageList.appendChild(messageItem);
     });
@@ -19,11 +26,12 @@
       const messageInput = document.getElementById('message');
       const receiverId = document.getElementById('receiverId').value;
       const message = messageInput.value;
-      socket.emit('sendMessage', { sender: '{{user.username}}', message });
+      const userId = '{{user.id}}'; // Assuming user ID is available in the template
+      socket.emit('sendMessage', { sender: '{{user.username}}', senderId: userId, receiverId, message });
       fetch('/chat/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ receiverId, message })
+        body: JSON.stringify({ senderId: userId, receiverId, message })
       });
       messageInput.value = '';
     }

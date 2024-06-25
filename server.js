@@ -7,20 +7,18 @@ const db = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const authMiddleware = require('./middleware/authMiddleware');
-const exphbs = require('express-handlebars');
+const { engine } = require('express-handlebars');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-// Set up Handlebars view engine
-app.engine('handlebars', exphbs.engine({
+// Set up Handlebars view engine with the 'eq' helper
+app.engine('handlebars', engine({
+  defaultLayout: 'main',
   helpers: {
-    ifCond: function (v1, v2, options) {
-      if (v1 === v2) {
-        return options.fn(this);
-      }
-      return options.inverse(this);
+    eq: function (a, b) {
+      return a === b;
     }
   }
 }));
@@ -37,10 +35,26 @@ app.use('/chat', authMiddleware, chatRoutes);
 // Serve static files from the public directory
 app.use(express.static('public'));
 
+// Example server-side code (Node.js with Express)
+app.get('/chat', (req, res) => {
+  res.render('chat', {
+    user: req.user, // Assuming req.user contains the logged-in user's data
+    users: getAllUsers(), // Function to get all users
+    messages: getMessagesForUser(req.user.id) // Function to get messages for the logged-in user
+  });
+});
+
 io.on('connection', (socket) => {
   console.log('New client connected');
   socket.on('sendMessage', (data) => {
-    io.emit('receiveMessage', data);
+    console.log('Message received:', data); // Debugging line
+    // Broadcast the message to all connected clients
+    io.emit('receiveMessage', {
+      sender: data.sender,
+      senderId: data.senderId,
+      receiverId: data.receiverId,
+      message: data.message
+    });
   });
   socket.on('disconnect', () => {
     console.log('Client disconnected');

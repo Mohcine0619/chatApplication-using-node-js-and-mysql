@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chat</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
@@ -28,19 +29,31 @@
     }
   </script>
 </head>
-<body>
-  <h1>Welcome, {{user.username}}</h1>
-  <a href="/auth/logout">Logout</a>
-  <h2>Users</h2>
-  <ul>
-    {{#each users}}
-      <li><a href="#" onclick="document.getElementById('receiverId').value = '{{this.id}}'">{{this.username}}</a></li>
-    {{/each}}
-  </ul>
-  <h2>Chat</h2>
-  <ul id="messages"></ul>
-  <input type="hidden" id="receiverId">
-  <input type="text" id="message" placeholder="Type a message">
-  <button onclick="sendMessage()">Send</button>
+<body class="bg-gray-100 h-screen flex flex-col">
+  <header class="bg-white shadow p-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold">Welcome, {{user.username}}</h1>
+    <a href="/auth/logout" class="text-blue-500 hover:underline">Logout</a>
+  </header>
+  <main class="flex-grow flex">
+    <aside class="bg-white w-1/4 p-4 border-r border-gray-200">
+      <h2 class="text-lg font-semibold mb-4">Users</h2>
+      <ul class="space-y-2">
+        {{#each users}}
+          <li>
+            <a href="#" onclick="document.getElementById('receiverId').value = '{{this.id}}'" class="text-blue-500 hover:underline">{{this.username}}</a>
+          </li>
+        {{/each}}
+      </ul>
+    </aside>
+    <section class="flex-grow p-4 flex flex-col">
+      <h2 class="text-lg font-semibold mb-4">Chat</h2>
+      <ul id="messages" class="flex-grow overflow-y-auto bg-white p-4 border border-gray-200 rounded-md mb-4"></ul>
+      <div class="flex">
+        <input type="hidden" id="receiverId">
+        <input type="text" id="message" placeholder="Type a message" class="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button onclick="sendMessage()" class="ml-2 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">Send</button>
+      </div>
+    </section>
+  </main>
 </body>
 </html>

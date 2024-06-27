@@ -40,7 +40,7 @@
           } else {
             messageItem.classList.add('bg-gray-200', 'text-black', 'self-start', 'mr-auto', 'dark:bg-gray-700', 'dark:text-white');
           }
-          messageItem.textContent = data.message;
+          messageItem.innerHTML = `<div>${data.message}</div>`;
           messageList.appendChild(messageItem);
         }
       });
@@ -66,13 +66,14 @@
       const message = messageInput.value;
       const userId = localStorage.getItem('userId');
       const username = '{{user.username}}';
-      console.log('Sending message:', { sender: username, senderId: userId, receiverId, message }); // Debugging line
+      const timestamp = new Date().toISOString(); // Get the current timestamp
+      console.log('Sending message:', { sender: username, senderId: userId, receiverId, message, timestamp }); // Debugging line
       if (receiverId && message) {
-        socket.emit('sendMessage', { sender: username, senderId: userId, receiverId, message });
+        socket.emit('sendMessage', { sender: username, senderId: userId, receiverId, message, timestamp });
         fetch('/chat/messages', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ senderId: userId, receiverId, message })
+          body: JSON.stringify({ senderId: userId, receiverId, message, timestamp })
         }).then(response => {
           if (!response.ok) {
             alert('Failed to send message');
@@ -117,7 +118,8 @@
             } else {
               messageItem.classList.add('bg-gray-200', 'text-black', 'self-start', 'mr-auto', 'dark:bg-gray-700', 'dark:text-white');
             }
-            messageItem.textContent = message.message;
+            const timestamp = new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            messageItem.innerHTML = `<div>${message.message}</div><div class="text-xs text-gray-500 dark:text-gray-400">${timestamp}</div>`;
             messageList.appendChild(messageItem);
           });
         })
@@ -142,6 +144,23 @@
     function toggleDarkMode() {
       document.documentElement.classList.toggle('dark');
     }
+
+    function searchUsers() {
+      const searchTerm = document.getElementById('searchUser').value.toLowerCase();
+      document.querySelectorAll('.user-item').forEach(item => {
+        const username = item.querySelector('a').textContent.toLowerCase();
+        if (username.includes(searchTerm)) {
+          item.style.display = '';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('searchButton').addEventListener('click', searchUsers);
+      document.getElementById('searchUser').addEventListener('input', searchUsers);
+    });
   </script>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 dark:text-white p-4">
@@ -157,9 +176,17 @@
       <!-- Users Section -->
       <div class="w-1/3 pr-4 border-r border-gray-300 dark:border-gray-700">
         <h2 class="text-2xl font-semibold mb-4">Users</h2>
-        <ul class="list-disc pl-5 space-y-2">
+        <div class="relative mb-4">
+          <input type="text" id="searchUser" placeholder="Search users" class="border border-gray-300 dark:border-gray-600 p-2 w-full rounded bg-white dark:bg-gray-800 text-black dark:text-white">
+          <button id="searchButton" class="absolute right-2 top-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 18a8 8 0 100-16 8 8 0 000 16zm6-2l4 4" />
+            </svg>
+          </button>
+        </div>
+        <ul id="userList" class="list-disc pl-5 space-y-2">
           {{#each users}}
-            <li class="flex items-center space-x-2">
+            <li class="flex items-center space-x-2 user-item">
               <img src="https://robohash.org/{{this.id}}?set=set2&size=40x40" alt="Profile Picture" class="w-10 h-10 rounded-full">
               <a href="#" onclick="selectUser('{{this.id}}', '{{this.username}}')" class="text-blue-500 dark:text-blue-300 hover:underline">
                 {{#if (eq this.id ../user.id)}}Me ({{this.username}}){{else}}{{this.username}}{{/if}}
@@ -179,7 +206,8 @@
           <ul id="messages" class="flex flex-col space-y-2 mb-4 h-64 overflow-y-auto bg-gray-50 dark:bg-gray-700 p-4 border border-gray-300 dark:border-gray-600 rounded">
             {{#each messages}}
               <li class="p-2 rounded-lg mb-2 max-w-xs break-words shadow-md {{#if (eq this.sender_id ../user.id)}}bg-blue-500 text-white self-end ml-auto{{else}}bg-gray-200 text-black self-start mr-auto dark:bg-gray-700 dark:text-white{{/if}}">
-                {{this.message}}
+                <div>{{this.message}}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">{{this.timestamp}}</div>
               </li>
             {{/each}}
           </ul>

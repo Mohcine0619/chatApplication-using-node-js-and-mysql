@@ -1,27 +1,30 @@
 const bcrypt = require('bcrypt');
-const path = require('path');
 const db = require('../config/db');
 
 exports.register = (req, res) => {
   const { username, password } = req.body;
-  const hashedPassword = bcrypt.hashSync(password, 10);
-  db.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword], (err) => {
-    if (err) throw err;
-    res.redirect('/auth/login');
+  db.query('SELECT * FROM users WHERE username = ?', [username], (err, results) => {
+    if (err) return res.status(500).send('Internal server error');
+    if (results.length > 0) {
+      return res.status(400).send('Username already exists');
+    }
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    db.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword], (err) => {
+      if (err) return res.status(500).send('Internal server error');
+      res.status(200).send('Registration successful');
+    });
   });
 };
 
 exports.login = (req, res) => {
   const { username, password } = req.body;
   db.query('SELECT * FROM users WHERE username = ?', [username], (err, results) => {
-    if (err) throw err;
-    if (results.length > 0 && bcrypt.compareSync(password, results[0].password)) {
-      req.session.user = results[0];
-      console.log('User logged in:', req.session.user); // Debugging line
-      res.redirect('/chat');
-    } else {
-      res.redirect('/auth/login');
+    if (err) return res.status(500).send('Internal server error');
+    if (results.length === 0 || !bcrypt.compareSync(password, results[0].password)) {
+      return res.status(400).send('Invalid username or password');
     }
+    req.session.user = results[0];
+    res.status(200).send('Login successful');
   });
 };
 

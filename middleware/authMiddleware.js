@@ -5,3 +5,4 @@ module.exports = (req, res, next) => {
     res.redirect('/auth/login');
   }
 };
+// Vérifie si l'objet session de la requête contient un utilisateur (req.session.user).

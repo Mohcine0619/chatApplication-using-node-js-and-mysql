@@ -78,6 +78,18 @@
         }).then(response => {
           if (!response.ok) {
             alert('Failed to send message');
+          } else {
+            const notification = document.getElementById('notification');
+            if (notification) {
+              console.log('Notification element found:', notification); // Debugging line
+              notification.play().then(() => {
+                console.log('Notification sound played successfully'); // Debugging line
+              }).catch(error => {
+                console.error('Error playing notification sound:', error); // Debugging line
+              });
+            } else {
+              console.error('Notification element not found'); // Debugging line
+            }
           }
         }).catch(error => {
           console.error('Error:', error);
@@ -165,6 +177,12 @@
   </script>
 </head>
 <body class="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800 dark:text-white p-6 font-roboto">
+  <audio id="notification" preload="auto">
+    <source src="/notification/notif.wav" type="audio/wav">
+    <source src="/notification/notif.mp3" type="audio/mpeg">
+    <source src="/notification/notif.ogg" type="audio/ogg">
+    Your browser does not support the audio element.
+  </audio>
   <div class="container mx-auto bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-10">
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-4xl font-extrabold text-center">Welcome, {{user.username}}</h1>
@@ -188,7 +206,7 @@
         <ul id="userList" class="space-y-4">
           {{#each users}}
             <li class="user-item flex items-center p-4 bg-gray-100 dark:bg-gray-700 rounded-lg shadow-md hover:bg-gray-200 dark:hover:bg-gray-600 transition">
-              <img src="https://robohash.org/{{this.id}}?set=set2&size=40x40" alt="Profile Picture" class="w-12 h-12 rounded-full">
+              <img src="https://api.multiavatar.com/{{this.id}}.svg" alt="Profile Picture" class="w-12 h-12 rounded-full">
               <div class="ml-4 flex-grow">
                 <a href="#" onclick="selectUser('{{this.id}}', '{{this.username}}')" class="user-name text-lg font-semibold text-blue-600 dark:text-blue-400 hover:underline">
                   {{#if (eq this.id ../user.id)}}Me ({{this.username}}){{else}}{{this.username}}{{/if}}

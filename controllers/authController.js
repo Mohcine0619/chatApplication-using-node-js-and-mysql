@@ -1,8 +1,8 @@
 const bcrypt = require('bcrypt');
 const db = require('../config/db');
 
-exports.register = (req, res) => {
-  const { username, password } = req.body;
+exports.register = (req, res) => { 
+  const { username, password } = req.body; // recupere les variables de requete body
   db.query('SELECT * FROM users WHERE username = ?', [username], (err, results) => {
     if (err) return res.status(500).send('Internal server error');
     if (results.length > 0) {

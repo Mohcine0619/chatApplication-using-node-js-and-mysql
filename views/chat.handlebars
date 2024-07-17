@@ -10,7 +10,7 @@
   <script>
     tailwind.config = {
       darkMode: 'class',
-    };
+    }; // activer mode sombre
 
     let socket;
 
@@ -21,12 +21,12 @@
         query: {
           userId: userId
         }
-      });
+      }); //Initialise la connexion Socket.IO avec l'ID utilisateur récupéré depuis le localStorage.
 
       socket.on('connect', () => {
         socket.emit('storeSocketId', userId);
         localStorage.setItem('socketId', socket.id);
-      });
+      });//Lors de la connexion, envoie l'ID utilisateur au serveur et stocke l'ID de socket dans le localStorage.
 
       socket.on('receiveMessage', (data) => {
         console.log('Received message:', data); // Debugging line
@@ -44,7 +44,7 @@
           messageItem.innerHTML = `<div>${data.message}</div>`;
           messageList.appendChild(messageItem);
         }
-      });
+      });//Gère la réception des messages et les affiche dans la liste des messages si l'utilisateur sélectionné est impliqué.
 
       socket.on('updateOnlineUsers', (onlineUsers) => {
         console.log('Online users:', onlineUsers);
@@ -58,7 +58,7 @@
             el.classList.remove('bg-green-500');
           }
         });
-      });
+      });//Met à jour l'état en ligne des utilisateurs en fonction des données reçues du serveur.
     }
 
     function sendMessage() {
@@ -98,7 +98,7 @@
       } else {
         alert('Please select a user and enter a message.');
       }
-    }
+    }//Envoie un message via Socket.IO et enregistre le message dans la base de données via une requête POST. Joue un son de notification si le message est envoyé avec succès.
 
     function selectUser(userId, username) {
       const loggedInUserId = localStorage.getItem('userId');
@@ -137,7 +137,7 @@
           });
         })
         .catch(error => console.error('Error fetching messages:', error));
-    }
+    }//Sélectionne un utilisateur pour discuter, met à jour l'interface utilisateur et récupère les messages précédents pour cet utilisateur.
 
     function loadSelectedUser() {
       const selectedUser = JSON.parse(localStorage.getItem('selectedUser'));
@@ -147,16 +147,17 @@
       const userId = '{{user.id}}';
       console.log('Logged in user ID:', userId); // Log the logged-in user ID
       localStorage.setItem('userId', userId); // Store the user ID in localStorage
-    }
+    }//Charge l'utilisateur sélectionné précédemment depuis le localStorage et initialise l'ID utilisateur actuel.
+
 
     window.onload = () => {
       loadSelectedUser();
       initializeSocket();
-    };
+    };//Initialise l'utilisateur sélectionné et la connexion Socket.IO lorsque la fenêtre se charge.
 
     function toggleDarkMode() {
       document.documentElement.classList.toggle('dark');
-    }
+    } // activer et desactiver le mode sombre
 
     function searchUsers() {
       const searchTerm = document.getElementById('searchUser').value.toLowerCase();
@@ -168,7 +169,7 @@
           item.style.display = 'none';
         }
       });
-    }
+    } //Filtre la liste des utilisateurs en fonction du terme de recherche saisi.
 
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('searchButton').addEventListener('click', searchUsers);
@@ -181,7 +182,9 @@
     <source src="/notification/notif.wav" type="audio/wav">
     <source src="/notification/notif.mp3" type="audio/mpeg">
     <source src="/notification/notif.ogg" type="audio/ogg">
-    Your browser does not support the audio element.
+    
+    {{!-- Ajoute un élément audio pour les notifications avec plusieurs formats de fichiers audio pour une compatibilité maximale. --}}
+
   </audio>
   <div class="container mx-auto bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-10">
     <div class="flex justify-between items-center mb-8">
